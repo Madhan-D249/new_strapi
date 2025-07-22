@@ -21,15 +21,15 @@ jobs:
           terraform_version: 1.5.7
 
       - name: Terraform Init
-        working-directory: ./new_strapi/terraform
+        working-directory: ./terraform
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: ./new_strapi/terraform
+        working-directory: ./terraform
         run: terraform plan -var-file="envs/dev.tfvars"
 
       - name: Terraform Apply
-        working-directory: ./new_strapi/terraform
+        working-directory: ./terraform
         run: terraform apply -var-file="envs/dev.tfvars" -auto-approve
 
       - name: Deploy Docker Image to EC2 via SSH
