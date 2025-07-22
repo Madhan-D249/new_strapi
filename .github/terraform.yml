@@ -1,0 +1,41 @@
+name: CD - Terraform Deploy to EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        working-directory: ./new_strapi/terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./new_strapi/terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: ./new_strapi/terraform
+        run: terraform apply -auto-approve
+
+      - name: Deploy Docker Image to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop strapi || true
+            docker rm strapi || true
+            docker pull ${{ secrets.DOCKER_USERNAME }}/my-strapi:${{ github.sha }}
+            docker run -d --name strapi -p 80:1337 ${{ secrets.DOCKER_USERNAME }}/my-strapi:${{ github.sha }}
