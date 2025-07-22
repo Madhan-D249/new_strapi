@@ -26,5 +26,5 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }} .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }} ./my-strapi
           docker push ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }}
