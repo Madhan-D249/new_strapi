@@ -2,7 +2,7 @@ name: CI - Build and Push Docker Image
 
 on:
   push:
-    branches: [mdhan]
+    branches: [madhan]
 
 jobs:
   build:
