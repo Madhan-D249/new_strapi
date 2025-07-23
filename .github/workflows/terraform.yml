@@ -36,7 +36,8 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform apply -var-file="envs/dev.tfvars" -auto-approve
-          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+    echo "EC2_IP=$(terraform output -raw strapi_public_ip)" >> $GITHUB_ENV
+
 
       - name: Wait for EC2 to become ready
         run: |
