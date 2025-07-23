@@ -35,41 +35,16 @@ jobs:
         id: terraform
         working-directory: ./terraform
         run: |
-          terraform apply -var-file="envs/dev.tfvars" -auto-approve
+          terraform apply \
+            -var-file="envs/dev.tfvars" \
+            -var="image_tag=${{ github.event.inputs.image_tag }}" \
+            -auto-approve
           echo "EC2_IP=$(terraform output -raw strapi_public_ip)" >> $GITHUB_ENV
-
 
       - name: Wait for EC2 to become ready
         run: |
           echo "Waiting for EC2 to boot up..."
-          sleep 60  # Adjust time based on instance boot speed
+          sleep 60
 
-      - name: Deploy Docker Image to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ env.EC2_IP }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Install Docker if not installed
-            if ! command -v docker &> /dev/null
-            then
-              echo "Docker not found. Installing Docker..."
-              sudo apt update
-              sudo apt install -y docker.io
-              sudo systemctl start docker
-              sudo systemctl enable docker
-            fi
-
-            # Setup environment variables
-            echo "${{ secrets.ENV_FILE }}" > .env
-
-            # Stop and remove existing container if any
-            sudo docker stop strapi || true
-            sudo docker rm strapi || true
-
-            # Pull latest image and run
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
-            sudo docker run -d --name strapi --env-file .env -p 80:1337 ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
-
-            echo "✅ Strapi container deployed on EC2!"
+      - name: Print EC2 IP
+        run: echo "✅ Strapi deployed to http://${{ env.EC2_IP }}:1337"
