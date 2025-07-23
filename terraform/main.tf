@@ -45,7 +45,9 @@ resource "aws_instance" "strapi_ec2" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
   key_name                    = var.key_name
-  user_data                   = file("${path.module}/scripts/setup.sh")
+  user_data = templatefile("${path.module}/scripts/setup.sh", {
+  image_tag = var.image_tag
+})
   vpc_security_group_ids      = [aws_security_group.strapimaxxy_sg.id]
   associate_public_ip_address = true
 

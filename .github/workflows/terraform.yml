@@ -1,11 +1,10 @@
 name: CD - Terraform Deploy to EC2
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 'Docker Image Tag (e.g. Git SHA)'
-        required: true
+  workflow_run:
+    workflows: ["CI - Build and Push Docker Image"]
+    types:
+      - completed
 
 jobs:
   terraform-deploy:
@@ -14,6 +13,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Download image tag artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: image-tag
+
+      - name: Read image tag from file
+        id: read_tag
+        run: |
+          IMAGE_TAG=$(cat image_tag.txt)
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -37,7 +47,7 @@ jobs:
         run: |
           terraform apply \
             -var-file="envs/dev.tfvars" \
-            -var="image_tag=${{ github.event.inputs.image_tag }}" \
+            -var="image_tag=${{ env.IMAGE_TAG }}" \
             -auto-approve
           echo "EC2_IP=$(terraform output -raw strapi_public_ip)" >> $GITHUB_ENV
 

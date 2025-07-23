@@ -1,30 +1,39 @@
-  name: CI - Build and Push Docker Image
+name: CI - Build and Push Docker Image
 
-  on:
-    push:
-      branches: [madhan]
+on:
+  push:
+    branches: [madhan]
 
-  jobs:
-    build:
-      runs-on: ubuntu-latest
-      outputs:
-        image_tag: ${{ steps.set_tag.outputs.tag }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.tag }}
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Set Docker Tag
-          id: set_tag
-          run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+      - name: Set Docker Tag
+        id: set_tag
+        run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
-        - name: Login to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Build and Push Docker Image
-          run: |
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }} ./my-strapi
-            docker push ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }}
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }} ./my-strapi
+          docker push ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }}
+
+      - name: Save image tag to file
+        run: echo "${{ steps.set_tag.outputs.tag }}" > image_tag.txt
+
+      - name: Upload image tag as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-tag
+          path: image_tag.txt
