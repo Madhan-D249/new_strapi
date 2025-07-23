@@ -1,4 +1,4 @@
-name: CD - Deploy Strapi to Existing EC2
+name: CD - Terraform Deploy to EC2
 
 on:
   workflow_dispatch:
@@ -8,12 +8,36 @@ on:
         required: true
 
 jobs:
-  deploy:
+  terraform-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -var-file="envs/dev.tfvars"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -var-file="envs/dev.tfvars" -auto-approve
 
       - name: Deploy Docker Image to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -22,8 +46,25 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Install Docker if not installed
+            if ! command -v docker &> /dev/null
+            then
+              echo "Docker not found. Installing Docker..."
+              sudo apt update
+              sudo apt install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+              newgrp docker
+            fi
+
+            # Set up environment variables
             echo "${{ secrets.ENV_FILE }}" > .env
-            docker stop strapi || true
-            docker rm strapi || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
-            docker run -d --name strapi --env-file .env -p 80:1337 ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
+
+            # Stop and remove existing container
+            sudo docker stop strapi || true
+            sudo docker rm strapi || true
+
+            # Pull and run new container
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
+            sudo docker run -d --name strapi --env-file .env -p 80:1337 ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ github.event.inputs.image_tag }}
