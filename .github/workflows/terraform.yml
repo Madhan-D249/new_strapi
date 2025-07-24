@@ -2,7 +2,7 @@ name: CD - Terraform Deploy to EC2
 
 on:
   workflow_run:
-    workflows:  ["CI - Build and Push Docker Image"]
+    workflows: ["CI - Build and Push Docker Image"]
     types:
       - completed
 
