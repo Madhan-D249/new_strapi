@@ -30,7 +30,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }}
 
       - name: Trigger CD workflow
-        uses: peter-evans/workflow-dispatch@v2
+        uses: peter-evans/workflow-dispatch@v1
         with:
           workflow: CD - Terraform Deploy to EC2
           ref: madhan
