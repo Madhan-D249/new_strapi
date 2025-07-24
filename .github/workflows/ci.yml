@@ -18,8 +18,11 @@ jobs:
         id: set_tag
         run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
+      - name: Debug Docker tag
+        run: echo "Image Tag: ${{ steps.set_tag.outputs.tag }}"
+
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v2 # v3 deprecated, use v2 instead
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
