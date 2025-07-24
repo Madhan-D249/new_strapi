@@ -41,8 +41,7 @@ jobs:
         working-directory: ./terraform
         run: terraform init
 
-      - name: Terraform Apply and Get IP
-        id: terraform
+      - name: Terraform Apply
         working-directory: ./terraform
         run: |
           terraform apply \
@@ -53,8 +52,8 @@ jobs:
 
       - name: Wait for EC2 to become ready
         run: |
-          echo "Waiting for EC2 to boot up..."
+          echo "Waiting for EC2 to boot..."
           sleep 60
 
-      - name: Print EC2 IP
-        run: echo "✅ Strapi deployed to http://${{ env.EC2_IP }}:1337"
+      - name: Print Strapi URL
+        run: echo "✅ Strapi deployed at http://${{ env.EC2_IP }}:1337"
