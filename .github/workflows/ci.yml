@@ -7,9 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.set_tag.outputs.tag }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,10 +16,10 @@ jobs:
         run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
       - name: Debug Docker tag
-        run: echo "Image Tag ${{ steps.set_tag.outputs.tag }}"
+        run: echo "Image Tag:${{ steps.set_tag.outputs.tag }}"
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2 # v3 deprecated, use v2 instead
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -32,11 +29,10 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }} ./my-strapi
           docker push ${{ secrets.DOCKER_USERNAME }}/strapi-backend:${{ steps.set_tag.outputs.tag }}
 
-      - name: Save image tag to file
-        run: echo "${{ steps.set_tag.outputs.tag }}" > image_tag.txt
-
-      - name: Upload image tag as artifact
-        uses: actions/upload-artifact@v4
+      - name: Trigger CD workflow
+        uses: peter-evans/workflow-dispatch@v1
         with:
-          name: image-tag
-          path: image_tag.txt
+          workflow: CD - Terraform Deploy to EC2
+          ref: madhan
+          inputs:
+            image_tag:"${{ steps.set_tag.outputs.tag }}"

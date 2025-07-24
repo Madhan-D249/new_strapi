@@ -1,14 +1,11 @@
 name: CD - Terraform Deploy to EC2
 
 on:
-  workflow_run:
-    workflows: ["CI - Build and Push Docker Image"]
-    types:
-      - completed
-
-concurrency:
-  group: terraform-deploy
-  cancel-in-progress: true
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        required: true
+        description: 'Docker image tag to deploy'
 
 jobs:
   terraform-deploy:
@@ -17,20 +14,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download image tag artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image-tag
-
-      - name: Confirm image tag file exists
-        run: cat image_tag.txt
-
-      - name: Read image tag from file
-        id: read_tag
-        run: |
-          IMAGE_TAG=$(cat image_tag.txt)
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -53,14 +36,12 @@ jobs:
         run: |
           terraform apply \
             -var-file="envs/dev.tfvars" \
-            -var="image_tag=${{ env.IMAGE_TAG }}" \
+            -var="image_tag=${{ github.event.inputs.image_tag }}" \
             -auto-approve
           echo "EC2_IP=$(terraform output -raw strapi_public_ip)" >> $GITHUB_ENV
 
-      - name: Wait for EC2 to become ready
-        run: |
-          echo "Waiting for EC2 to boot..."
-          sleep 60
+      - name: Wait for EC2 to boot
+        run: sleep 60
 
       - name: Print Strapi URL
         run: echo "✅ Strapi deployed at http://${{ env.EC2_IP }}:1337"
