@@ -1,4 +1,3 @@
-
 version: '3.8'
 
 services:
@@ -44,4 +43,4 @@ volumes:
 
 networks:
   strapi-network:
-    external: true
+    driver: bridge
