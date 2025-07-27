@@ -25,7 +25,7 @@ This task sets up a production-grade deployment of a Dockerized Strapi applicati
 ```bash
 terraform init
 terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
+terraform apply -var-file="terraform.tfvars" ```
 Output
 Load Balancer DNS: http://<alb-dns-name>
 
