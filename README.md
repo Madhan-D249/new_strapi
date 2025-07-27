@@ -25,7 +25,8 @@ This task sets up a production-grade deployment of a Dockerized Strapi applicati
 ```bash
 terraform init
 terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars" ```
+terraform apply -var-file="terraform.tfvars"
+```
 Output
 Load Balancer DNS: http://<alb-dns-name>
 
@@ -71,6 +72,7 @@ Automate CI/CD for Strapi using GitHub Actions:
 
 - Fully automated pipeline from code push to deployment.
 - Redeployment possible by re-running the workflow.
+```
 # Task 4: Deploy Strapi on EC2 using Terraform and Docker
 
 ## Objective
@@ -128,6 +130,7 @@ Run Strapi with PostgreSQL database and expose it via Nginx on port 80.
 ```bash
 docker network create strapi-net
 docker-compose up --build
+```
 
 Access
 Strapi Admin: http://66:54:66:321:1337
@@ -166,7 +169,7 @@ Create a Dockerfile to containerize the Strapi app and run it locally.
 ```bash
 docker build -t my-strapi-app .
 docker run -p 1337:1337 my-strapi-app
-
+```
 
 ---
 
@@ -212,3 +215,4 @@ Fields: title, body
 
 Output
 Local Strapi admin panel working
+```
